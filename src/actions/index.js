@@ -715,7 +715,7 @@ export const updateCruise = (formProps) => {
   let fields = { ...formProps }
   delete fields.id
   delete fields.cruise_access_list
-  delete fields.cruise_additional_meta.cruise_files
+  // delete fields.cruise_additional_meta.cruise_files
 
   return async (dispatch) => {
     const response = await update_cruise(fields, formProps.id)
