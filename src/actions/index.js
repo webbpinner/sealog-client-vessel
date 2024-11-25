@@ -6,6 +6,7 @@ import { _Cruise_ } from '../vocab'
 import {
   create_cruise,
   create_event,
+  create_event_aux_data,
   create_event_template,
   create_user,
   delete_cruise,
@@ -715,7 +716,7 @@ export const updateCruise = (formProps) => {
   let fields = { ...formProps }
   delete fields.id
   delete fields.cruise_access_list
-  delete fields.cruise_additional_meta.cruise_files
+  // delete fields.cruise_additional_meta.cruise_files
 
   return async (dispatch) => {
     const response = await update_cruise(fields, formProps.id)
@@ -765,6 +766,30 @@ export const updateEventFilterForm = (formProps) => {
 }
 
 export const updateEventRequest = async (formProps) => {
+  if (formProps.event_files) {
+    let data_array = []
+    formProps.event_files.forEach((file) => {
+      data_array.push({
+        data_name: 'camera_name',
+        data_value: file
+      })
+      data_array.push({
+        data_name: 'filename',
+        data_value: file
+      })
+    })
+
+    const aux_data_record = {
+      event_id: formProps.id,
+      data_source: 'eventFileAttachments',
+      data_array
+    }
+
+    await create_event_aux_data(aux_data_record)
+  }
+
+  delete formProps.event_files
+
   let fields = { ...formProps }
   delete fields.id
   return await update_event(fields, formProps.id)

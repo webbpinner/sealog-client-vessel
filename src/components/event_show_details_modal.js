@@ -4,20 +4,23 @@ import { connect } from 'react-redux'
 import { connectModal } from 'redux-modal'
 import PropTypes from 'prop-types'
 import { Row, Col, Card, Modal } from 'react-bootstrap'
+import ImagePreviewModal from './image_preview_modal'
 import AuxDataCards from './aux_data_cards'
 import EventCommentCard from './event_comment_card'
 import EventOptionsCard from './event_options_card'
-import { EXCLUDE_AUX_DATA_SOURCES, AUX_DATA_SORT_ORDER } from '../client_settings'
-import { get_event_exports } from '../api'
+import ImageryCards from './imagery_cards'
+import { EXCLUDE_AUX_DATA_SOURCES, IMAGES_AUX_DATA_SOURCES, AUX_DATA_SORT_ORDER } from '../client_settings'
+import { get_event_exports, handle_image_file_download } from '../api'
 import * as mapDispatchToProps from '../actions'
 
-const excludeAuxDataSources = Array.from(new Set([...EXCLUDE_AUX_DATA_SOURCES]))
+const excludeAuxDataSources = Array.from(new Set([...EXCLUDE_AUX_DATA_SOURCES, ...IMAGES_AUX_DATA_SOURCES]))
 
 class EventShowDetailsModal extends Component {
   constructor(props) {
     super(props)
 
     this.state = { event: {} }
+    this.handleImagePreviewModal = this.handleImagePreviewModal.bind(this)
   }
 
   componentDidMount() {
@@ -39,6 +42,10 @@ class EventShowDetailsModal extends Component {
     this.setState({ event })
   }
 
+  handleImagePreviewModal(source, filepath) {
+    this.props.showModal('imagePreview', { name: source, filepath: filepath })
+  }
+
   render() {
     const { show, event } = this.props
 
@@ -51,6 +58,9 @@ class EventShowDetailsModal extends Component {
       </Col>
     ) : null
 
+    const image_data_sources = this.state.event.aux_data
+      ? this.state.event.aux_data.filter((aux_data) => IMAGES_AUX_DATA_SOURCES.includes(aux_data.data_source))
+      : []
     const aux_data = this.state.event.aux_data
       ? this.state.event.aux_data.filter((data) => !excludeAuxDataSources.includes(data.data_source))
       : []
@@ -62,6 +72,7 @@ class EventShowDetailsModal extends Component {
       if (this.state.event.event_options) {
         return (
           <Modal size='lg' show={show} onHide={this.props.handleHide}>
+            <ImagePreviewModal handleDownload={handle_image_file_download} />
             <Modal.Header className='bg-light' closeButton>
               <Modal.Title as='h5'>Event Details:</Modal.Title>
             </Modal.Header>
@@ -79,6 +90,7 @@ class EventShowDetailsModal extends Component {
                 </Col>
               </Row>
               <Row>
+                <ImageryCards image_data_sources={image_data_sources} onClick={this.handleImagePreviewModal} lg={4} />
                 <AuxDataCards aux_data={aux_data} lg={4} />
                 <EventOptionsCard event={this.state.event} lg={4} />
                 {event_free_text_card}
@@ -106,7 +118,8 @@ class EventShowDetailsModal extends Component {
 EventShowDetailsModal.propTypes = {
   event: PropTypes.object,
   handleHide: PropTypes.func.isRequired,
-  show: PropTypes.bool.isRequired
+  show: PropTypes.bool.isRequired,
+  showModal: PropTypes.func.isRequired
 }
 
 const mapStateToProps = (state) => {

@@ -4,6 +4,7 @@ import FileDownload from 'js-file-download'
 import { API_ROOT_URL } from './client_settings'
 
 export const CRUISE_ROUTE = '/files/cruises'
+export const IMAGE_ROUTE = '/files/images'
 
 export const authorizationHeader = () => {
   return {
@@ -55,8 +56,10 @@ const _errorNot400 = (error) => {
 }
 
 const _handleFileDelete = async (filename, route, id, callback) => {
+  const url = id ? `${API_ROOT_URL}${route}/${id}/${filename}` : `${API_ROOT_URL}${route}/${filename}`
+
   await axios
-    .delete(`${API_ROOT_URL}${route}/${id}/${filename}`, authorizationHeader())
+    .delete(url, authorizationHeader())
     .then(async () => {
       await callback()
     })
@@ -67,8 +70,10 @@ const _handleFileDelete = async (filename, route, id, callback) => {
 }
 
 const _handleFileDownload = async (filename, route, id) => {
+  const url = id ? `${API_ROOT_URL}${route}/${id}/${filename}` : `${API_ROOT_URL}${route}/${filename}`
+
   await axios
-    .get(`${API_ROOT_URL}${route}/${id}/${filename}`, authorizationHeader())
+    .get(url, authorizationHeader())
     .then((response) => {
       FileDownload(response.data, filename)
     })
@@ -247,6 +252,30 @@ export const update_custom_var = async (payload, id) => {
 }
 
 // Aux Data
+export const create_event_aux_data = async (payload) => {
+  return await axios
+    .post(`${API_ROOT_URL}/api/v1/event_aux_data`, payload, authorizationHeader())
+    .then((response) => {
+      return { success: true, data: response.data }
+    })
+    .catch((error) => {
+      _errorNot400(error)
+      return { error }
+    })
+}
+
+export const delete_event_aux_data = async (id) => {
+  return await axios
+    .delete(`${API_ROOT_URL}/api/v1/event_aux_data/${id}`, authorizationHeader())
+    .then(() => {
+      return { success: true }
+    })
+    .catch((error) => {
+      console.debug(error)
+      return { error }
+    })
+}
+
 export const get_event_aux_data = async (queryDict = {}, id = null) => {
   const queryStr = id ? `/${id}?` : '?' + _buildQueryString(queryDict)
 
@@ -258,6 +287,18 @@ export const get_event_aux_data = async (queryDict = {}, id = null) => {
     .catch((error) => {
       _errorNot404(error)
       return id ? null : []
+    })
+}
+
+export const update_event_aux_data = async (payload, id) => {
+  return await axios
+    .patch(`${API_ROOT_URL}/api/v1/event_aux_data/${id}`, payload, authorizationHeader())
+    .then(() => {
+      return { success: true }
+    })
+    .catch((error) => {
+      _errorNot400(error)
+      return { error }
     })
 }
 
@@ -276,18 +317,6 @@ export const get_event_aux_data_by_cruise = async (queryDict, id) => {
 }
 
 // Event Exports
-export const create_event_template = async (payload) => {
-  return await axios
-    .post(`${API_ROOT_URL}/api/v1/event_templates`, payload, authorizationHeader())
-    .then((response) => {
-      return { success: true, data: response.data }
-    })
-    .catch((error) => {
-      _errorNot400(error)
-      return { error }
-    })
-}
-
 export const get_event_exports = async (queryDict = {}, id = null) => {
   const queryStr = id ? `/${id}?` : '?' + _buildQueryString(queryDict)
 
@@ -316,7 +345,19 @@ export const get_event_exports_by_cruise = async (queryDict, id) => {
     })
 }
 
-// Event Templatess
+// Event Templates
+export const create_event_template = async (payload) => {
+  return await axios
+    .post(`${API_ROOT_URL}/api/v1/event_templates`, payload, authorizationHeader())
+    .then((response) => {
+      return { success: true, data: response.data }
+    })
+    .catch((error) => {
+      _errorNot400(error)
+      return { error }
+    })
+}
+
 export const delete_event_template = async (id) => {
   return await axios
     .delete(`${API_ROOT_URL}/api/v1/event_templates/${id}`, authorizationHeader())
@@ -524,4 +565,12 @@ export const handle_cruise_file_delete = async (filename, cruise_id, callback) =
 
 export const handle_cruise_file_download = async (filename, cruise_id) => {
   await _handleFileDownload(filename, CRUISE_ROUTE, cruise_id)
+}
+
+export const handle_image_file_delete = async (filename, callback) => {
+  await _handleFileDelete(filename, IMAGE_ROUTE, callback)
+}
+
+export const handle_image_file_download = async (filename) => {
+  await _handleFileDownload(filename, IMAGE_ROUTE)
 }

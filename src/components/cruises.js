@@ -200,12 +200,7 @@ class Cruises extends Component {
       if (index >= (this.state.activePage - 1) * maxCruisesPerPage && index < this.state.activePage * maxCruisesPerPage) {
         let editLink = (
           <OverlayTrigger placement='top' overlay={editTooltip}>
-            <FontAwesomeIcon
-              className='text-warning'
-              onClick={() => this.handleCruiseUpdate(cruise.id)}
-              icon='pencil-alt'
-              fixedWidth
-            />
+            <FontAwesomeIcon className='text-warning' onClick={() => this.handleCruiseUpdate(cruise.id)} icon='pencil-alt' fixedWidth />
           </OverlayTrigger>
         )
 
