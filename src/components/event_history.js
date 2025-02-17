@@ -95,7 +95,6 @@ class EventHistory extends Component {
           await this.fetchEventExport()
         } else {
           const oldest_ts = Moment(this.state.events.slice(-1)[0].ts)
-          const event_ts = Moment(this.state.event.ts)
           const update_ts = Moment(update.ts)
 
           if (update_ts > oldest_ts) {
@@ -106,7 +105,7 @@ class EventHistory extends Component {
       }
 
       const updateAuxDataHandler = async (update) => {
-        const event = await get_events({}, update.event_id) || {}
+        const event = (await get_events({}, update.event_id)) || {}
         if (event.id) {
           updateHandler(event)
         }
