@@ -179,7 +179,7 @@ class EventTemplateOptionsModal extends Component {
 
     if (eventTemplate) {
       return (
-        <Modal show={show} onHide={this.handleFormHide}>
+        <Modal size='md' show={show} onHide={this.handleFormHide}>
           <form onSubmit={handleSubmit(this.handleFormSubmit.bind(this))}>
             <Modal.Header className='bg-light' closeButton>
               <Modal.Title>{eventTemplate.event_value}</Modal.Title>
@@ -198,8 +198,8 @@ class EventTemplateOptionsModal extends Component {
               <Field name='ts' label='Custom Time (UTC)' component={renderDateTimePicker} disabled={this.props.disabled} required={true} />
             </Modal.Body>
             <Modal.Footer>
-              <span className='float-right'>
-                <Button className='mr-1' size='sm' variant='secondary' disabled={submitting} onClick={this.handleFormHide}>
+              <span className='float-end'>
+                <Button className='me-1' size='sm' variant='secondary' disabled={submitting} onClick={this.handleFormHide}>
                   Cancel
                 </Button>
                 {this.props.event ? (

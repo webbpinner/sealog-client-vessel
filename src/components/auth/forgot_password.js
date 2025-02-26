@@ -3,7 +3,7 @@ import { compose } from 'redux'
 import { reduxForm, Field } from 'redux-form'
 import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { Form, Row, Col, Card, Button, Alert } from 'react-bootstrap'
+import { Form, Row, Col, Container, Card, Button, Alert } from 'react-bootstrap'
 import ReCAPTCHA from 'react-google-recaptcha'
 import PropTypes from 'prop-types'
 import * as mapDispatchToProps from '../../actions'
@@ -35,7 +35,7 @@ class ForgotPassword extends Component {
             <div className='alert alert-success'>
               <strong>Success!</strong> {this.props.successMessage}
             </div>
-            <div className='text-center'>
+            <div className='text-center d-grid'>
               <hr className='border-secondary' />
               <Link className='btn btn-outline-primary btn-block' to={`/login`}>
                 Back to Login
@@ -67,11 +67,6 @@ class ForgotPassword extends Component {
     if (!this.props.successMessage) {
       const { handleSubmit, submitting, valid } = this.props
 
-      const submitButton = (
-        <Button variant='primary' type='submit' block disabled={submitting || !valid}>
-          Submit
-        </Button>
-      )
       const recaptcha = RECAPTCHA_SITE_KEY ? (
         <span>
           <ReCAPTCHA ref={this.recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} size='invisible' />
@@ -84,19 +79,21 @@ class ForgotPassword extends Component {
           <Card.Body>
             <h5 className='form-signin-heading'>Forgot Password</h5>
             <Form onSubmit={handleSubmit(this.handleFormSubmit.bind(this))}>
-              <Form.Row>
+              <Row>
                 <Field name='email' component={renderTextField} placeholder='Email Address' />
-              </Form.Row>
+              </Row>
               {recaptcha}
               {this.renderAlert()}
-              {submitButton}
+              <div className='d-grid gap-2'>
+                <Button variant='outline-primary' type='submit' disabled={submitting || !valid}>
+                  Submit
+                </Button>
+                <hr />
+                <Link className='btn btn-outline-secondary' to={`/login`}>
+                  Back to Login
+                </Link>
+              </div>
             </Form>
-            <div className='text-center'>
-              <hr className='border-secondary' />
-              <Link className='btn btn-outline-primary btn-block' to={`/login`}>
-                Back to Login
-              </Link>
-            </div>
           </Card.Body>
         </Card>
       )
@@ -105,14 +102,14 @@ class ForgotPassword extends Component {
 
   render() {
     return (
-      <div className='my-4'>
-        <Row className='justify-content-center'>
+      <Container>
+        <Row className='pt-4 justify-content-center'>
           <Col sm={6} md={5} lg={4} xl={3}>
             {this.renderSuccess()}
             {this.renderForm()}
           </Col>
         </Row>
-      </div>
+      </Container>
     )
   }
 }

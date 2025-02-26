@@ -4,15 +4,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import moment from 'moment'
 import { Map, TileLayer, WMSTileLayer, Marker, Polyline, Popup, LayersControl, ScaleControl, CircleMarker } from 'react-leaflet'
 import L from 'leaflet'
-import { ButtonToolbar, Container, Row, Col, Card, Tooltip, OverlayTrigger, ListGroup, Form } from 'react-bootstrap'
-import Slider from 'rc-slider'
-import EventShowDetailsModal from './event_show_details_modal'
-import EventFilterForm from './event_filter_form'
-import EventCommentModal from './event_comment_modal'
-import CruiseModeDropdown from './cruise_mode_dropdown'
-import CustomPagination from './custom_pagination'
-import ExportDropdown from './export_dropdown'
+import { ButtonToolbar, Row, Col, Card, Tooltip, OverlayTrigger, ListGroup } from 'react-bootstrap'
 import PropTypes from 'prop-types'
+import Slider from 'rc-slider'
+import CustomPagination from './custom_pagination'
+import EventCommentModal from './event_comment_modal'
+import EventFilterForm from './event_filter_form'
+import EventShowDetailsModal from './event_show_details_modal'
+import ExportDropdown from './export_dropdown'
+import ReviewDropdown from './review_dropdown'
 import { get_event_aux_data_by_cruise } from '../api'
 import { POSITION_DATASOURCES } from '../client_settings'
 import { TILE_LAYERS, DEFAULT_LOCATION } from '../map_tilelayers'
@@ -107,10 +107,7 @@ class CruiseMap extends Component {
 
   sliderTooltipFormatter(v) {
     if (this.props.event.events && this.props.event.events[v]) {
-      let cruiseStartTime = moment(this.props.cruise.start_ts)
-      let cruiseNow = moment(this.props.event.events[v].ts)
-      let cruiseElapse = cruiseNow.diff(cruiseStartTime)
-      return moment.duration(cruiseElapse).format('d [days] hh:mm:ss')
+      return moment.utc(this.props.event.events[v].ts).format('MM/DD HH:mm')
     }
 
     return ''
@@ -277,18 +274,17 @@ class CruiseMap extends Component {
   }
 
   renderControlsCard() {
-    if (this.props.cruise) {
-      const cruiseStartTime = moment(this.props.cruise.start_ts)
-      const cruiseEndTime = moment(this.props.cruise.stop_ts)
-      const cruiseDuration = cruiseEndTime.diff(cruiseStartTime)
+    if (this.props.event && this.props.event.events.length > 0) {
+      const cruiseStartTime = moment.utc(this.props.event.events[0].ts).format('MM/DD HH:mm')
+      const cruiseEndTime = moment.utc(this.props.event.events[this.props.event.events.length - 1].ts).format('MM/DD HH:mm')
 
       return (
         <Card className='border-secondary p-1'>
-          <div className='d-flex align-items-center justify-content-between'>
-            <span className='text-primary'>00:00:00</span>
-            <span className='text-primary'>{moment.duration(cruiseDuration).format('d [days] hh:mm:ss')}</span>
+          <div className='d-flex justify-content-between text-primary'>
+            <span>{cruiseStartTime}</span>
+            <span>{cruiseEndTime}</span>
           </div>
-          <div className='d-flex align-items-center justify-content-between' ref={this.sliderRef}>
+          <div className='d-flex justify-content-between' ref={this.sliderRef}>
             <SliderWithTooltip
               className='mx-2'
               value={this.state.replayEventIndex}
@@ -306,24 +302,13 @@ class CruiseMap extends Component {
   }
 
   renderEventListHeader() {
-    const Label = 'Filtered Events'
-    const ASNAPToggle = (
-      <Form.Check
-        id='ASNAP'
-        type='switch'
-        inline
-        checked={this.props.event.hideASNAP}
-        onChange={() => this.toggleASNAP()}
-        disabled={this.props.event.fetching}
-        label='Hide ASNAP'
-      />
-    )
-
     return (
       <div>
-        {Label}
-        <span className='float-right'>
-          {ASNAPToggle}
+        Filtered Events
+        <span className='float-end'>
+          <span className='me-2 text-primary' style={{ fontSize: '.85rem' }} onClick={this.toggleASNAP}>
+            {this.props.event.hideASNAP ? 'Show ASNAP' : 'Hide ASNAP'}
+          </span>
           <ExportDropdown
             id='dropdown-download'
             disabled={this.props.event.fetching}
@@ -369,40 +354,43 @@ class CruiseMap extends Component {
             eventOptionsArray.push(`free_text: "${event.event_free_text}"`)
           }
           let active = this.props.event.selected_event.id === event.id ? true : false
-          let eventOptions = eventOptionsArray.length > 0 ? '--> ' + eventOptionsArray.join(', ') : ''
-          let commentIcon = comment_exists ? (
-            <FontAwesomeIcon onClick={() => this.handleEventCommentModal(index)} icon='comment' fixedWidth transform='grow-4' />
-          ) : (
-            <span onClick={() => this.handleEventCommentModal(index)} className='fa-layers fa-fw'>
-              <FontAwesomeIcon icon='comment' fixedWidth transform='grow-4' />
-              <FontAwesomeIcon className={active ? 'text-primary' : 'text-secondary'} icon='plus' fixedWidth transform='shrink-4' />
-            </span>
-          )
-          let commentTooltip = comment_exists ? (
+          let eventOptions = eventOptionsArray.length > 0 ? eventOptionsArray.join(', ') : ''
+          let eventComment = comment_exists ? (
             <OverlayTrigger placement='left' overlay={<Tooltip id={`commentTooltip_${event.id}`}>Edit/View Comment</Tooltip>}>
-              {commentIcon}
+              <FontAwesomeIcon onClick={() => this.handleEventCommentModal(index)} icon='comment' fixedWidth transform='grow-4' />
             </OverlayTrigger>
           ) : (
             <OverlayTrigger placement='top' overlay={<Tooltip id={`commentTooltip_${event.id}`}>Add Comment</Tooltip>}>
-              {commentIcon}
+              <span onClick={() => this.handleEventCommentModal(index)} className='fa-layers fa-fw'>
+                <FontAwesomeIcon icon='comment' fixedWidth transform='grow-4' />
+                <FontAwesomeIcon inverse style={active ? { color: 'var(--bs-primary)' } : ''} icon='plus' fixedWidth transform='shrink-4' />
+              </span>
             </OverlayTrigger>
           )
 
-          let eventComment = this.props.roles.includes('event_logger') || this.props.roles.includes('admin') ? commentTooltip : null
           let eventDetails = (
             <OverlayTrigger placement='left' overlay={<Tooltip id={`commentTooltip_${event.id}`}>View Details</Tooltip>}>
-              <FontAwesomeIcon onClick={() => this.handleEventShowDetailsModal(index)} icon='window-maximize' fixedWidth />
+              <FontAwesomeIcon onClick={() => this.handleEventShowDetailsModal(index)} icon='window-maximize' fixedWidth className='me-1' />
             </OverlayTrigger>
           )
 
           return (
-            <ListGroup.Item className='event-list-item' key={event.id} active={active}>
-              <span
-                onClick={() => this.handleEventClick(index)}
-              >{`${event.ts} <${event.event_author}>: ${event.event_value} ${eventOptions}`}</span>
-              <span className='float-right'>
-                {eventDetails} {eventComment}
-              </span>
+            <ListGroup.Item key={event.id} className='event-list-item d-flex justify-content-between' active={active}>
+              <div onClick={() => this.handleEventClick(index)}>
+                {event.ts}{' '}
+                <b>
+                  <i>{event.event_author}</i>
+                </b>
+                : {event.event_value} {eventOptions ? <FontAwesomeIcon icon='arrow-right' fixedWidth /> : null} {eventOptions}
+              </div>
+              {this.props.roles && this.props.roles.some((role) => ['admin', 'event_logger'].includes(role)) ? (
+                <div style={{ minWidth: '39px' }}>
+                  {eventDetails}
+                  {eventComment}
+                </div>
+              ) : (
+                <div>{eventDetails}</div>
+              )}
             </ListGroup.Item>
           )
         }
@@ -487,18 +475,18 @@ class CruiseMap extends Component {
       ) : null
 
     return (
-      <Container className='mt-2'>
+      <div className='pt-2 px-1'>
         <EventCommentModal />
         <EventShowDetailsModal />
         <Row>
-          <ButtonToolbar className='mb-2 ml-1 align-items-center'>
+          <ButtonToolbar className='mb-2 ms-1 align-items-center'>
             <span onClick={() => this.props.gotoCruiseMenu()} className='text-warning'>
               {_Cruises_}
             </span>
             <FontAwesomeIcon icon='chevron-right' fixedWidth />
             <span className='text-warning'>{this.props.cruise.cruise_id || 'Loading...'}</span>
             <FontAwesomeIcon icon='chevron-right' fixedWidth />
-            <CruiseModeDropdown onClick={this.handleCruiseModeSelect} active_mode={'Map'} modes={['Replay']} />
+            <ReviewDropdown cruiseID={this.props.cruise.id} activeMode={'Map'} />
           </ButtonToolbar>
         </Row>
         <Row>
@@ -506,8 +494,8 @@ class CruiseMap extends Component {
             <Card className='event-header-card'>
               <Card.Header>
                 {this.props.event.selected_event.event_value}
-                <span className='float-right'>
-                  {this.props.event.selected_event.event_author} @ {this.props.event.selected_event.ts}
+                <span className='float-end'>
+                  <i>{this.props.event.selected_event.event_author}</i> @ {this.props.event.selected_event.ts}
                 </span>
               </Card.Header>
             </Card>
@@ -540,7 +528,7 @@ class CruiseMap extends Component {
           </Col>
         </Row>
         <Row>
-          <Col className='px-1' md={9} lg={9}>
+          <Col className='px-1' sm={12} md={8} lg={9}>
             {this.renderEventCard()}
             <CustomPagination
               className='mt-2'
@@ -550,7 +538,7 @@ class CruiseMap extends Component {
               maxPerPage={maxEventsPerPage}
             />
           </Col>
-          <Col className='px-1' md={3} lg={3}>
+          <Col className='px-1' sm={12} md={4} lg={3}>
             <EventFilterForm
               disabled={this.props.event.fetching}
               hideASNAP={this.props.event.hideASNAP}
@@ -561,7 +549,7 @@ class CruiseMap extends Component {
             />
           </Col>
         </Row>
-      </Container>
+      </div>
     )
   }
 }

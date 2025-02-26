@@ -22,7 +22,7 @@ class ImagePreviewModal extends Component {
 
     if (name) {
       return (
-        <Modal size='lg' show={show} onHide={handleHide}>
+        <Modal size='xl' show={show} onHide={handleHide}>
           <Modal.Header className='bg-light' closeButton>
             <Modal.Title as='h5'>
               Image Preview - {Path.basename(this.props.filepath)}{' '}

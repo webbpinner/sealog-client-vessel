@@ -32,7 +32,7 @@ class EventHistory extends Component {
       hideASNAP: true,
       showNewEventDetails: true,
       showEventHistory: true,
-      showEventHistoryFullscreen: false,
+      showExpandedEventHistory: false,
       filterTimer: null,
       eventFilterValue: null
     }
@@ -44,8 +44,9 @@ class EventHistory extends Component {
     this.handleImagePreviewModal = this.handleImagePreviewModal.bind(this)
     this.handleSearchChange = this.handleSearchChange.bind(this)
     this.handleUpdateEvent = this.handleUpdateEvent.bind(this)
+    this.toggleASNAP = this.toggleASNAP.bind(this)
     this.toggleEventHistory = this.toggleEventHistory.bind(this)
-    this.toggleEventHistoryFullscreen = this.toggleEventHistoryFullscreen.bind(this)
+    this.toggleExpandedEventHistory = this.toggleExpandedEventHistory.bind(this)
     this.toggleNewEventDetails = this.toggleNewEventDetails.bind(this)
   }
 
@@ -72,7 +73,7 @@ class EventHistory extends Component {
       this.fetchEvents()
     }
 
-    if (prevState.showNewEventDetails !== this.state.showNewEventDetails && this.state.showNewEventDetails && this.state.events[0]) {
+    if (prevState.showNewEventDetails !== this.state.showNewEventDetails && this.state.showNewEventDetails && this.state.events.length) {
       this.fetchEventExport(this.state.events[0].id)
     }
   }
@@ -81,6 +82,7 @@ class EventHistory extends Component {
     if (this.props.authenticated) {
       this.client.disconnect()
     }
+    // this.props.fetchSelectedEvent()
   }
 
   async connectToWS() {
@@ -128,9 +130,10 @@ class EventHistory extends Component {
   async fetchEvents() {
     this.setState({ fetching: true })
 
-    let eventFilterValue = this.state.eventFilterValue ? this.state.eventFilterValue : this.state.hideASNAP ? '!ASNAP' : null
+    let eventFilterValue = this.state.eventFilterValue ? this.state.eventFilterValue : null
 
     let query = {
+      value: this.state.hideASNAP ? ['!ASNAP'] : null,
       fulltext: eventFilterValue ? eventFilterValue.split(',') : null,
       sort: 'newest',
       offset: (this.state.activePage - 1) * maxEventsPerPage,
@@ -139,12 +142,15 @@ class EventHistory extends Component {
 
     const events = await get_events(query)
     this.setState({ events, fetching: false })
+    if (events.length) {
+      this.fetchEventExport(events[0].id)
+    }
   }
 
   async fetchEventExport(event_id = null) {
     if (!event_id) {
       const query = {
-        fulltext: this.state.hideASNAP ? ['!ASNAP'] : null,
+        value: this.state.hideASNAP ? ['!ASNAP'] : null,
         sort: 'newest',
         limit: 1
       }
@@ -201,9 +207,9 @@ class EventHistory extends Component {
     }))
   }
 
-  toggleEventHistoryFullscreen() {
+  toggleExpandedEventHistory() {
     this.setState((prevState) => ({
-      showEventHistoryFullscreen: !prevState.showEventHistoryFullscreen
+      showExpandedEventHistory: !prevState.showExpandedEventHistory
     }))
   }
 
@@ -248,9 +254,9 @@ class EventHistory extends Component {
         }, [])
 
         if (event.event_free_text) {
-          eventOptionsArray.push(`free_text: "${event.event_free_text}"`)
+          eventOptionsArray.push(`text: "${event.event_free_text}"`)
         }
-        let eventOptions = eventOptionsArray.length > 0 ? '--> ' + eventOptionsArray.join(', ') : ''
+        let eventOptions = eventOptionsArray.length > 0 ? eventOptionsArray.join(', ') : ''
         let commentIcon = comment_exists ? (
           <FontAwesomeIcon onClick={() => this.handleEventCommentModal(event)} icon='comment' fixedWidth transform='grow-4' />
         ) : (
@@ -270,11 +276,15 @@ class EventHistory extends Component {
         )
 
         eventArray.push(
-          <ListGroup.Item className='event-list-item' key={event.id}>
-            <span onClick={() => this.handleEventShowDetailsModal(event)}>
-              {event.ts} {`<${event.event_author}>`}: {event.event_value} {eventOptions}
-            </span>
-            <span className='float-right'>{commentTooltip}</span>
+          <ListGroup.Item key={event.id} className='event-list-item d-flex justify-content-between'>
+            <div onClick={() => this.handleEventShowDetailsModal(event)}>
+              {event.ts}{' '}
+              <b>
+                <i>{event.event_author}</i>
+              </b>
+              : {event.event_value} {eventOptions ? <FontAwesomeIcon icon='arrow-right' fixedWidth /> : null} {eventOptions}
+            </div>
+            <div>{commentTooltip}</div>
           </ListGroup.Item>
         )
       }
@@ -293,10 +303,6 @@ class EventHistory extends Component {
       return null
     }
 
-    if (!this.state.showNewEventDetails) {
-      return null
-    }
-
     const showNewEventTooltip = (
       <Tooltip id='showHistoryTooltip'>{this.state.showNewEventDetails ? 'Hide new event details' : 'Show new event details'}</Tooltip>
     )
@@ -305,7 +311,7 @@ class EventHistory extends Component {
     const event_free_text_card = this.state.event.event_free_text ? (
       <Col className='event-data-col' sm={6} md={4} lg={3}>
         <Card className='event-data-card'>
-          <Card.Header>Free-form Text</Card.Header>
+          <Card.Header className='event-details'>Free-form Text</Card.Header>
           <Card.Body>{this.state.event.event_free_text}</Card.Body>
         </Card>
       </Col>
@@ -325,120 +331,110 @@ class EventHistory extends Component {
     return (
       <Card className={this.props.className}>
         <ImagePreviewModal handleDownload={handle_image_file_download} />
-        <Card.Header>
-          <span>{this.state.event.event_value}</span>
-          <span className='float-right'>
-            {this.state.event.event_author}
-            {' @ '}
-            {this.state.event.ts}
+        <Card.Header className='event-details'>
+          {this.state.event.event_value}
+          <span className='float-end'>
+            <i>{this.state.event.event_author}</i> @ {this.state.event.ts}
             <OverlayTrigger placement='top' overlay={showNewEventTooltip}>
-              <span className='float-right pl-2' size='sm' onClick={this.toggleNewEventDetails}>
+              <span className='float-end ps-2' size='sm' onClick={this.toggleNewEventDetails}>
                 <FontAwesomeIcon icon={showNewEventIcon} fixedWidth />
               </span>
             </OverlayTrigger>
           </span>
         </Card.Header>
-        <Card.Body className='pt-2 pb-1'>
-          <Row>
-            <ImageryCards image_data_sources={image_data_sources} onClick={this.handleImagePreviewModal} md={4} lg={3} />
-            <AuxDataCards aux_data={aux_data} md={4} lg={3} />
-            <EventOptionsCard event={this.state.event} md={4} lg={3} />
-            {event_free_text_card}
-            <EventCommentCard event={this.state.event} md={4} lg={3} />
-          </Row>
-        </Card.Body>
+        {this.state.showNewEventDetails && (image_data_sources.length || aux_data.length || event_free_text_card) ? (
+          <Card.Body className='pt-2 pb-1'>
+            <Row>
+              <ImageryCards image_data_sources={image_data_sources} onClick={this.handleImagePreviewModal} md={4} lg={3} />
+              <AuxDataCards aux_data={aux_data} md={4} lg={3} />
+              <EventOptionsCard event={this.state.event} md={4} lg={3} />
+              {event_free_text_card}
+              <EventCommentCard event={this.state.event} md={4} lg={3} />
+            </Row>
+          </Card.Body>
+        ) : null}
       </Card>
     )
   }
 
   renderEventHistoryHeader() {
     const showHistoryFullscreenTooltip = (
-      <Tooltip id='compressTooltip'>{this.state.showEventHistoryFullscreen ? 'Compress event history' : 'Expand event history'}</Tooltip>
+      <Tooltip id='compressTooltip'>{this.state.showExpandedEventHistory ? 'Compress event history' : 'Expand event history'}</Tooltip>
     )
-    const showHistoryFullscreenIcon = this.state.showEventHistoryFullscreen ? 'compress' : 'expand'
+    const showExpandedHistoryIcon = this.state.showExpandedEventHistory ? 'compress' : 'expand'
     const showHistoryTooltip = (
       <Tooltip id='showHistoryTooltip'>{this.state.showEventHistory ? 'Hide event history' : 'Show event history'}</Tooltip>
     )
     const showHistoryIcon = this.state.showEventHistory ? 'eye' : 'eye-slash'
-    const showNewEventDetails = !this.state.showNewEventDetails ? (
-      <span className='mr-2' size='sm' onClick={this.toggleNewEventDetails}>
-        Show Recent Event
-      </span>
-    ) : (
-      ''
-    )
 
     return (
       <Card.Header>
         Event History
-        <Form inline className='float-right'>
-          {showNewEventDetails}
-          {this.state.showEventHistory ? (
-            <React.Fragment>
-              <FormControl
-                size='sm'
-                type='text'
-                placeholder='Filter'
-                className='mr-sm-2'
-                onKeyPress={this.handleKeyDown}
-                onChange={this.handleSearchChange}
+        <OverlayTrigger placement='left' overlay={showHistoryTooltip}>
+          <FontAwesomeIcon
+            icon={showHistoryIcon}
+            fixedWidth
+            className='float-end'
+            style={{ paddingTop: '8px' }}
+            onClick={this.toggleEventHistory}
+          />
+        </OverlayTrigger>
+        {this.state.showEventHistory ? (
+          <React.Fragment>
+            <OverlayTrigger placement='left' overlay={showHistoryFullscreenTooltip}>
+              <FontAwesomeIcon
+                icon={showExpandedHistoryIcon}
+                fixedWidth
+                className='mx-2 float-end'
+                style={{ paddingTop: '8px' }}
+                onClick={this.toggleExpandedEventHistory}
               />
-              <OverlayTrigger placement='top' overlay={showHistoryFullscreenTooltip}>
-                <span className='mr-2' size='sm' onClick={this.toggleEventHistoryFullscreen}>
-                  <FontAwesomeIcon icon={showHistoryFullscreenIcon} fixedWidth />
-                </span>
-              </OverlayTrigger>{' '}
-            </React.Fragment>
-          ) : null}
-          <OverlayTrigger placement='top' overlay={showHistoryTooltip}>
-            <span size='sm' onClick={this.toggleEventHistory}>
-              <FontAwesomeIcon icon={showHistoryIcon} fixedWidth />
-            </span>
-          </OverlayTrigger>
-        </Form>
+            </OverlayTrigger>
+            <Form className='float-end'>
+              {this.state.showEventHistory ? (
+                <FormControl
+                  size='sm'
+                  type='text'
+                  placeholder='Filter'
+                  className='me-2'
+                  onKeyPress={this.handleKeyDown}
+                  onChange={this.handleSearchChange}
+                />
+              ) : null}
+            </Form>
+            <div className='float-end mt-1 pe-2 text-primary' style={{ fontSize: '.85rem' }} onClick={this.toggleASNAP}>
+              {this.state.hideASNAP ? 'Show ASNAP' : 'Hide ASNAP'}
+            </div>
+          </React.Fragment>
+        ) : null}
       </Card.Header>
     )
   }
 
   renderEventHistoryBody() {
-    const ASNAPToggle = (
-      <Form.Check
-        id='ASNAP'
-        type='switch'
-        checked={this.state.hideASNAP}
-        disabled={this.state.eventFilterValue}
-        onChange={() => this.toggleASNAP()}
-        label='Hide ASNAP'
-      />
-    )
-
     if (!this.state.showEventHistory) {
       return null
     }
 
     return (
       <React.Fragment>
-        <ListGroup
-          variant='flush'
-          className={`eventList ${!this.state.showEventHistoryFullscreen ? 'collapsed' : ''}`}
-          ref={eventHistoryRef}
-        >
+        <ListGroup variant='flush' className={`eventList ${!this.state.showExpandedEventHistory ? 'collapsed' : ''}`} ref={eventHistoryRef}>
           {this.renderEventHistory()}
         </ListGroup>
         <Card.Footer>
           <Button
-            className='mr-1'
+            className='me-1'
             size={'sm'}
-            variant='outline-primary'
+            variant={this.state.activePage === 1 ? 'outline' : 'outline-primary'}
             onClick={() => this.firstPage()}
             disabled={this.state.activePage === 1}
           >
             Newest Events
           </Button>
           <Button
-            className='mr-1'
+            className='me-1'
             size={'sm'}
-            variant='outline-primary'
+            variant={this.state.activePage === 1 ? 'outline' : 'outline-primary'}
             onClick={() => this.decrementPage()}
             disabled={this.state.activePage === 1}
           >
@@ -452,9 +448,6 @@ class EventHistory extends Component {
           >
             Older Events
           </Button>
-          <Form className='float-right' inline>
-            {ASNAPToggle}
-          </Form>
         </Card.Footer>
       </React.Fragment>
     )

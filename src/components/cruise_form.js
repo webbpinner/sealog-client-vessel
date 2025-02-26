@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { compose } from 'redux'
 import { connect } from 'react-redux'
 import { reduxForm, Field, change } from 'redux-form'
-import { Button, Card, Form } from 'react-bootstrap'
+import { Button, Card, Form, Row } from 'react-bootstrap'
 import { renderAlert, renderDatePicker, renderMessage, renderTextField, renderTextArea, dateFormat } from './form_elements'
 import moment from 'moment'
 import PropTypes from 'prop-types'
@@ -12,7 +12,6 @@ import CopyCruiseToClipboard from './copy_cruise_to_clipboard'
 import { authorizationHeader, handle_cruise_file_delete, handle_cruise_file_download, CRUISE_ROUTE } from '../api'
 import { API_ROOT_URL, CRUISE_ID_PLACEHOLDER, CRUISE_ID_REGEX, DEFAULT_VESSEL } from '../client_settings'
 import { _Cruise_, _cruise_ } from '../vocab'
-
 import * as mapDispatchToProps from '../actions'
 
 const start_ts = moment.utc().set('hour', 0).set('minute', 0).set('second', 0).set('millisecond', 0)
@@ -96,7 +95,7 @@ class CruiseForm extends Component {
     if (this.props.cruise.cruise_additional_meta && this.props.cruise.cruise_additional_meta.cruise_files) {
       let files = this.props.cruise.cruise_additional_meta.cruise_files.map((file, index) => {
         return (
-          <div className='pl-2' key={`file_${index}`}>
+          <div className='ps-2' key={`file_${index}`}>
             <a className='text-decoration-none' href='#' onClick={() => handle_cruise_file_download(file, this.props.cruise.id)}>
               {file}
             </a>{' '}
@@ -116,7 +115,7 @@ class CruiseForm extends Component {
     const formHeader = (
       <div>
         {this.props.cruise.id ? 'Update' : 'Add'} {_Cruise_}
-        <span className='float-right'>{this.props.cruise.id ? <CopyCruiseToClipboard cruise={this.props.cruise} /> : null}</span>
+        <span className='float-end'>{this.props.cruise.id ? <CopyCruiseToClipboard cruise={this.props.cruise} /> : null}</span>
       </div>
     )
 
@@ -128,9 +127,9 @@ class CruiseForm extends Component {
       return (
         <Card className='border-secondary'>
           <Card.Header>{formHeader}</Card.Header>
-          <Card.Body>
+          <Card.Body className='cruise_form'>
             <Form onSubmit={handleSubmit(this.handleFormSubmit.bind(this))}>
-              <Form.Row>
+              <Row>
                 <Field
                   name='cruise_id'
                   component={renderTextField}
@@ -175,8 +174,8 @@ class CruiseForm extends Component {
                   label={`${_Cruise_} Location`}
                   placeholder='i.e. Lost City, Mid Atlantic Ridge'
                 />
-              </Form.Row>
-              <Form.Row>
+              </Row>
+              <Row>
                 <Field
                   name='cruise_additional_meta.cruise_description'
                   component={renderTextArea}
@@ -184,8 +183,8 @@ class CruiseForm extends Component {
                   placeholder={`i.e. A brief description of the ${_cruise_}`}
                   rows={8}
                 />
-              </Form.Row>
-              <Form.Row>
+              </Row>
+              <Row>
                 <Field
                   name='start_ts'
                   component={renderDatePicker}
@@ -204,8 +203,8 @@ class CruiseForm extends Component {
                   sm={6}
                   lg={6}
                 />
-              </Form.Row>
-              <Form.Row>
+              </Row>
+              <Row>
                 <Field
                   name='cruise_additional_meta.cruise_departure_location'
                   component={renderTextField}
@@ -226,8 +225,8 @@ class CruiseForm extends Component {
                   sm={6}
                   lg={6}
                 />
-              </Form.Row>
-              <Form.Row>
+              </Row>
+              <Row>
                 <Field
                   name='cruise_additional_meta.cruise_participants'
                   component={renderTextArea}
@@ -242,37 +241,39 @@ class CruiseForm extends Component {
                   placeholder='i.e. coral,chemistry,engineering'
                   rows={2}
                 />
-              </Form.Row>
-              <Form.Label>{_Cruise_} Files</Form.Label>
-              {this.renderFiles()}
-              <FilePond
-                ref={(ref) => (this.pond = ref)}
-                allowMultiple={true}
-                maxFiles={5}
-                server={{
-                  url: API_ROOT_URL,
-                  process: {
-                    url: CRUISE_ROUTE + '/filepond/process/' + this.props.cruise.id,
-                    ...authorizationHeader()
-                  },
-                  revert: {
-                    url: CRUISE_ROUTE + '/filepond/revert',
-                    ...authorizationHeader()
-                  }
-                }}
-                onupdatefiles={() => {
-                  this.props.dispatch(change('editCruise', 'cruise_additional_meta.cruise_files', true))
-                }}
-                disabled={this.props.cruise.id ? false : true}
-              ></FilePond>
+              </Row>
+              <Row>
+                <Form.Label>{_Cruise_} Files</Form.Label>
+                {this.renderFiles()}
+                <FilePond
+                  ref={(ref) => (this.pond = ref)}
+                  allowMultiple={true}
+                  maxFiles={5}
+                  server={{
+                    url: API_ROOT_URL,
+                    process: {
+                      url: CRUISE_ROUTE + '/filepond/process/' + this.props.cruise.id,
+                      ...authorizationHeader()
+                    },
+                    revert: {
+                      url: CRUISE_ROUTE + '/filepond/revert',
+                      ...authorizationHeader()
+                    }
+                  }}
+                  onupdatefiles={() => {
+                    this.props.dispatch(change('editCruise', 'cruise_additional_meta.cruise_files', true))
+                  }}
+                  disabled={this.props.cruise.id ? false : true}
+                />
+              </Row>
               {renderAlert(this.props.errorMessage)}
               {renderMessage(this.props.message)}
-              <div className='float-right'>
-                <Button className='mr-1' variant='secondary' size='sm' disabled={pristine || submitting} onClick={reset}>
+              <div className='float-end mt-2'>
+                <Button className='me-2' variant='outline-secondary' size='sm' disabled={pristine || submitting} onClick={reset}>
                   Reset Values
                 </Button>
                 <Button
-                  variant='primary'
+                  variant='outline-primary'
                   size='sm'
                   type='submit'
                   disabled={(submitting || !valid || pristine) && this.state.filepondPristine}

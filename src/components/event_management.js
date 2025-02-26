@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { connect } from 'react-redux'
-import { Card, Col, Container, Form, ListGroup, OverlayTrigger, Row, Tooltip } from 'react-bootstrap'
+import { Card, Col, ListGroup, OverlayTrigger, Row, Tooltip } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import EventFilterForm from './event_filter_form'
 import EventCommentModal from './event_comment_modal'
-import DeleteEventModal from './delete_event_modal'
+import DeleteModal from './delete_modal'
 import EventShowDetailsModal from './event_show_details_modal'
 import CustomPagination from './custom_pagination'
 import ExportDropdown from './export_dropdown'
@@ -33,6 +33,7 @@ class EventManagement extends Component {
     this.handleEventUpdate = this.handleEventUpdate.bind(this)
     this.handleEventDelete = this.handleEventDelete.bind(this)
     this.handlePageSelect = this.handlePageSelect.bind(this)
+    this.toggleASNAP = this.toggleASNAP.bind(this)
     this.updateEventFilter = this.updateEventFilter.bind(this)
   }
 
@@ -86,9 +87,10 @@ class EventManagement extends Component {
   }
 
   handleEventDeleteModal(event) {
-    this.props.showModal('deleteEvent', {
+    this.props.showModal('deleteModal', {
       id: event.id,
-      handleDelete: this.handleEventDelete
+      handleDelete: this.handleEventDelete,
+      message: 'this event'
     })
   }
 
@@ -188,23 +190,14 @@ class EventManagement extends Component {
 
   renderEventListHeader() {
     const Label = 'Filtered Events'
-    const ASNAPToggle = (
-      <Form.Check
-        id='ASNAP'
-        type='switch'
-        inline
-        checked={!this.state.hideASNAP}
-        onChange={() => this.toggleASNAP()}
-        disabled={this.state.fetching}
-        label='ASNAP'
-      />
-    )
 
     return (
       <div>
         {Label}
-        <span className='float-right'>
-          {ASNAPToggle}
+        <span className='float-end'>
+          <span className='me-2 text-primary' style={{ fontSize: '.85rem' }} onClick={this.toggleASNAP}>
+            {this.state.hideASNAP ? 'Show ASNAP' : 'Hide ASNAP'}
+          </span>
           <ExportDropdown
             id='dropdown-download'
             disabled={this.state.fetching || this.state.eventCount > maxEventDownload}
@@ -233,13 +226,13 @@ class EventManagement extends Component {
         if (event.event_free_text) {
           eventOptionsArray.push(`free_text: "${event.event_free_text}"`)
         }
-        let eventOptions = eventOptionsArray.length > 0 ? '--> ' + eventOptionsArray.join(', ') : ''
+        let eventOptions = eventOptionsArray.length > 0 ? eventOptionsArray.join(', ') : ''
         let commentIcon = comment_exists ? (
           <FontAwesomeIcon onClick={() => this.handleEventCommentModal(event)} icon='comment' fixedWidth transform='grow-4' />
         ) : (
           <span onClick={() => this.handleEventCommentModal(event)} className='fa-layers fa-fw'>
             <FontAwesomeIcon icon='comment' fixedWidth transform='grow-4' />
-            <FontAwesomeIcon className={'text-secondary'} icon='plus' fixedWidth inverse transform='shrink-4' />
+            <FontAwesomeIcon inverse icon='plus' fixedWidth transform='shrink-4' />
           </span>
         )
         let commentTooltip = comment_exists ? (
@@ -253,7 +246,7 @@ class EventManagement extends Component {
         )
 
         let deleteIcon = (
-          <FontAwesomeIcon className={'text-danger'} onClick={() => this.handleEventDeleteModal(event)} icon='trash' fixedWidth />
+          <FontAwesomeIcon className={'text-danger me-1'} onClick={() => this.handleEventDeleteModal(event)} icon='trash' fixedWidth />
         )
         let deleteTooltip =
           this.props.roles && this.props.roles.includes('admin') ? (
@@ -263,13 +256,18 @@ class EventManagement extends Component {
           ) : null
 
         return (
-          <ListGroup.Item className='event-list-item' key={event.id}>
-            <span onClick={() => this.handleEventShowDetailsModal(event)}>
-              {event.ts} {`<${event.event_author}>`}: {event.event_value} {eventOptions}
-            </span>
-            <span className='float-right'>
-              {deleteTooltip} {commentTooltip}
-            </span>
+          <ListGroup.Item key={event.id} className='event-list-item d-flex justify-content-between'>
+            <div onClick={() => this.handleEventShowDetailsModal(event)}>
+              {event.ts}{' '}
+              <b>
+                <i>{event.event_author}</i>
+              </b>
+              : {event.event_value} {eventOptions ? <FontAwesomeIcon icon='arrow-right' fixedWidth /> : null} {eventOptions}
+            </div>
+            <div style={{ minWidth: '39px' }}>
+              {deleteTooltip}
+              {commentTooltip}
+            </div>
           </ListGroup.Item>
         )
       })
@@ -297,29 +295,29 @@ class EventManagement extends Component {
     return (
       <Card className='border-secondary'>
         <Card.Header>{this.renderEventListHeader()}</Card.Header>
-        <ListGroup className='eventList'>{this.renderEvents()}</ListGroup>
+        <ListGroup>{this.renderEvents()}</ListGroup>
       </Card>
     )
   }
 
   render() {
     return (
-      <Container className='mt-2'>
+      <React.Fragment>
         <EventCommentModal />
-        <DeleteEventModal />
+        <DeleteModal />
         <EventShowDetailsModal />
-        <Row>
-          <Col className='px-1 pb-2' sm={12} md={9} lg={9}>
+        <Row className='py-2 px-1'>
+          <Col className='px-1' sm={12} md={8} lg={9}>
             {this.renderEventCard()}
             <CustomPagination
-              className='mt-2'
+              className='pt-2'
               page={this.state.activePage}
               count={this.state.eventCount}
               pageSelectFunc={this.handlePageSelect}
               maxPerPage={maxEventsPerPage}
             />
           </Col>
-          <Col className='px-1 pb-2' sm={12} md={3} lg={3}>
+          <Col className='px-1' sm={12} md={4} lg={3}>
             <EventFilterForm
               disabled={this.state.fetching}
               hideASNAP={this.state.hideASNAP}
@@ -328,7 +326,7 @@ class EventManagement extends Component {
             />
           </Col>
         </Row>
-      </Container>
+      </React.Fragment>
     )
   }
 }

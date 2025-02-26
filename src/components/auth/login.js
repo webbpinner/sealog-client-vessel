@@ -3,7 +3,7 @@ import { compose } from 'redux'
 import { reduxForm, Field } from 'redux-form'
 import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { Alert, Row, Col, Form, Card, Button, Image } from 'react-bootstrap'
+import { Alert, Button, Card, Col, Container, Form, Image, Row } from 'react-bootstrap'
 import { renderTextField } from '../form_elements'
 import ReCAPTCHA from 'react-google-recaptcha'
 import PropTypes from 'prop-types'
@@ -73,7 +73,6 @@ class Login extends Component {
 
   render() {
     const { handleSubmit, submitting, valid } = this.props
-    const loginCardHeader = <h5 className='form-signin-heading'>Please Sign In</h5>
 
     const recaptcha = RECAPTCHA_SITE_KEY ? (
       <span>
@@ -83,12 +82,12 @@ class Login extends Component {
     ) : null
 
     const loginButton = (
-      <Button variant='primary' type='submit' block disabled={submitting || !valid}>
+      <Button variant='primary' type='submit' disabled={submitting || !valid}>
         Login
       </Button>
     )
     const loginAsGuestButton = (
-      <Button variant='success' onClick={() => this.switch2Guest()} block>
+      <Button variant='success' onClick={() => this.switch2Guest()}>
         Login as Guest
       </Button>
     )
@@ -100,42 +99,49 @@ class Login extends Component {
     ) : null
 
     return (
-      <div className='my-4'>
-        <Row className='justify-content-center'>
-          <Col sm={6} md={4} lg={3}>
-            <Card>
+      <Container>
+        <Row className='pt-4 justify-content-center'>
+          <Col sm={8} md={6} lg={4} xl={4}>
+            <Card className='mb-4'>
               <Card.Body>
-                {loginCardHeader}
                 <Form onSubmit={handleSubmit(this.handleFormSubmit.bind(this))}>
-                  <Form.Row>
+                  <p>Please login to your account</p>
+                  <Form.Group className='mb-2'>
                     <Field name='username' component={renderTextField} placeholder='Username' />
+                  </Form.Group>
+                  <Form.Group className='mb-2'>
                     <Field name='password' component={renderTextField} type='password' placeholder='Password' />
-                  </Form.Row>
+                  </Form.Group>
                   {recaptcha}
                   {this.renderMessage(this.props.errorMessage, this.props.message)}
-                  {loginButton}
-                  {loginAsGuestButton}
+                  <div className='d-grid gap-2'>
+                    {loginButton}
+                    {loginAsGuestButton}
+                  </div>
                 </Form>
+                <hr />
                 <div className='text-center'>
-                  <hr className='border-secondary' />
-                  <Link className='btn btn-outline-primary btn-block' to={`/forgotPassword`}>
+                  <Link className='text-muted text-link' to={'/forgotPassword'}>
                     Forgot Password?
                   </Link>
-                  <Link className='btn btn-outline-primary btn-block' to={`/register`}>
-                    Register New User
-                  </Link>
+                  <div className='pt-3'>
+                    Don`&apos;`t have an account?
+                    <Link className='btn btn-sm btn-outline-primary ms-2' to={'/register'}>
+                      Register
+                    </Link>
+                  </div>
                 </div>
               </Card.Body>
             </Card>
           </Col>
-          <Col className='justify-content-center d-none d-md-inline' md={5} lg={4} xl={3}>
+          <Col sm={8} md={6} lg={5} xl={4}>
             {loginImage}
             <p className='text-justify' style={{ whiteSpace: 'pre-wrap' }}>
               {LOGIN_SCREEN_TXT}
             </p>
           </Col>
         </Row>
-      </div>
+      </Container>
     )
   }
 }
