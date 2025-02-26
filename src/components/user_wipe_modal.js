@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Button, Modal } from 'react-bootstrap'
 import { connectModal } from 'redux-modal'
 
-class DeleteEventTemplateModal extends Component {
+class UserWipeModal extends Component {
   constructor(props) {
     super(props)
 
@@ -11,21 +11,21 @@ class DeleteEventTemplateModal extends Component {
   }
 
   handleConfirm() {
-    this.props.handleDelete(this.props.id)
+    this.props.handleDelete()
     this.props.handleHide()
   }
 
   render() {
-    const { show, handleHide, id } = this.props
+    const { show, handleHide, handleDelete } = this.props
 
-    if (id) {
+    if (handleDelete) {
       return (
-        <Modal show={show} onHide={handleHide}>
+        <Modal size='md' show={show} onHide={handleHide}>
           <Modal.Header className='bg-light' closeButton>
-            <Modal.Title>Confirm Deletion</Modal.Title>
+            <Modal.Title>Confirm Wipe</Modal.Title>
           </Modal.Header>
 
-          <Modal.Body>{'Are you sure you want to delete this event template?'}</Modal.Body>
+          <Modal.Body>{'Are you sure you want to wipe the non-system users from the local database?'}</Modal.Body>
 
           <Modal.Footer>
             <Button size='sm' variant='secondary' onClick={handleHide}>
@@ -43,11 +43,10 @@ class DeleteEventTemplateModal extends Component {
   }
 }
 
-DeleteEventTemplateModal.propTypes = {
-  id: PropTypes.string,
+UserWipeModal.propTypes = {
   handleDelete: PropTypes.func,
   handleHide: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired
 }
 
-export default connectModal({ name: 'deleteEventTemplate' })(DeleteEventTemplateModal)
+export default connectModal({ name: 'userWipe' })(UserWipeModal)

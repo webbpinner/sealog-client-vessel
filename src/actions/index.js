@@ -115,6 +115,7 @@ export const autoLogin = ({ loginToken, reCaptcha = null }) => {
       if (response.success) {
         cookies.set('token', response.data.token)
         cookies.set('id', response.data.id)
+        cookies.set('category', null)
         dispatch({ type: AUTH_USER })
         return dispatch(updateProfileState())
       } else {
@@ -249,7 +250,7 @@ export const createUserSuccess = (message) => {
   }
 }
 
-export const deleteAllNonSystemEventTemplates = () => {
+export const deleteAllEventTemplates = () => {
   return async (dispatch) => {
     const query = {
       system_template: false
@@ -257,7 +258,7 @@ export const deleteAllNonSystemEventTemplates = () => {
 
     const event_templates = await get_event_templates(query)
     event_templates.map(async (event_template) => {
-      await dispatch(deleteEventTemplate(event_template.id, false))
+      await dispatch(deleteEventTemplate(event_template.id))
     })
 
     return dispatch(fetchEventTemplates())
@@ -607,6 +608,7 @@ export const login = ({ username, password, reCaptcha = null }) => {
       if (response.success) {
         cookies.set('token', response.data.token)
         cookies.set('id', response.data.id)
+        cookies.set('category', null)
         dispatch(updateProfileState())
         return dispatch({ type: AUTH_USER })
       }
@@ -626,6 +628,7 @@ export const logout = () => {
   return (dispatch) => {
     cookies.remove('token')
     cookies.remove('id')
+    cookies.remove('category')
     dispatch(push(`/login`))
     return dispatch({ type: UNAUTH_USER })
   }
@@ -738,7 +741,7 @@ export const updateCruiseError = (message) => {
 
 export const updateCruiseReplayEvent = (id) => {
   return async (dispatch) => {
-    const payload = await get_events({}, id)
+    const payload = await get_event_exports({}, id)
     return dispatch({ type: UPDATE_EVENT, payload })
   }
 }

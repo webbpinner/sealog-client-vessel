@@ -9,7 +9,7 @@ class AuxDataCard extends Component {
       return (
         <div key={`${this.props.aux_data.data_source}_data_point_${index}`}>
           <span className='data-name'>{data.data_name.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}:</span>{' '}
-          <span className='float-right' style={{ wordWrap: 'break-word' }}>
+          <span className='float-end' style={{ wordWrap: 'break-word' }}>
             {data.data_value} {data.data_uom}
           </span>
           <br />
@@ -26,7 +26,7 @@ class AuxDataCard extends Component {
         lg={this.props.lg || 3}
       >
         <Card className='event-data-card' key={`${this.props.aux_data.data_source}`}>
-          <Card.Header>{formatAuxDataSourceName(this.props.aux_data.data_source)}</Card.Header>
+          <Card.Header className='event-details'>{formatAuxDataSourceName(this.props.aux_data.data_source)}</Card.Header>
           <Card.Body>{aux_data_points}</Card.Body>
         </Card>
       </Col>
