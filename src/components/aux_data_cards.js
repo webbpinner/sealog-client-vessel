@@ -47,7 +47,14 @@ class AuxDataCards extends Component {
   render() {
     return this.props.aux_data.map((aux_data) => {
       return (
-        <AuxDataCard aux_data={aux_data} key={`${aux_data.data_source}_col`} sm={this.props.sm} md={this.props.md} lg={this.props.lg} xl={this.props.xl} />
+        <AuxDataCard
+          aux_data={aux_data}
+          key={`${aux_data.data_source}_col`}
+          sm={this.props.sm}
+          md={this.props.md}
+          lg={this.props.lg}
+          xl={this.props.xl}
+        />
       )
     })
   }
