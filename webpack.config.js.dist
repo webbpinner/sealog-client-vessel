@@ -43,9 +43,7 @@ module.exports = {
       {
         test: /\.s[ac]ss$/i,
         use: [
-          process.env.NODE_ENV !== 'production'
-          ? 'style-loader'
-          : MiniCssExtractPlugin.loader,
+          process.env.NODE_ENV !== 'production' ? 'style-loader' : MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
             options: {
@@ -96,9 +94,7 @@ module.exports = {
       chunkFilename: 'style/[id].css'
     }),
     new CopyPlugin({
-      patterns: [
-        { from: path.resolve(__dirname, 'src/assets/images/'), to: 'images' }
-      ]
+      patterns: [{ from: path.resolve(__dirname, 'src/assets/images/'), to: 'images' }]
     })
   ],
   resolve: {
