@@ -24,6 +24,7 @@ class AuxDataCard extends Component {
         sm={this.props.sm || 6}
         md={this.props.md || 4}
         lg={this.props.lg || 3}
+        xl={this.props.xl || 3}
       >
         <Card className='event-data-card' key={`${this.props.aux_data.data_source}`}>
           <Card.Header className='event-details'>{formatAuxDataSourceName(this.props.aux_data.data_source)}</Card.Header>
@@ -38,14 +39,15 @@ AuxDataCard.propTypes = {
   aux_data: PropTypes.object.isRequired,
   sm: PropTypes.number,
   md: PropTypes.number,
-  lg: PropTypes.number
+  lg: PropTypes.number,
+  xl: PropTypes.number
 }
 
 class AuxDataCards extends Component {
   render() {
     return this.props.aux_data.map((aux_data) => {
       return (
-        <AuxDataCard aux_data={aux_data} key={`${aux_data.data_source}_col`} sm={this.props.sm} md={this.props.md} lg={this.props.lg} />
+        <AuxDataCard aux_data={aux_data} key={`${aux_data.data_source}_col`} sm={this.props.sm} md={this.props.md} lg={this.props.lg} xl={this.props.xl} />
       )
     })
   }
@@ -55,7 +57,8 @@ AuxDataCards.propTypes = {
   aux_data: PropTypes.array.isRequired,
   sm: PropTypes.number,
   md: PropTypes.number,
-  lg: PropTypes.number
+  lg: PropTypes.number,
+  xl: PropTypes.number
 }
 
 export default AuxDataCards

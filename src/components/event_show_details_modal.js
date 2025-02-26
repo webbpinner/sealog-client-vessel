@@ -50,7 +50,7 @@ class EventShowDetailsModal extends Component {
     const { show, event } = this.props
 
     const event_free_text_card = this.state.event.event_free_text ? (
-      <Col className='event-data-col' md={6} xl={3}>
+      <Col className='event-data-col' md={6} lg={4} xl={3}>
         <Card className='event-data-card'>
           <Card.Header className='event-details'>Free-form Text</Card.Header>
           <Card.Body>{this.state.event.event_free_text}</Card.Body>
@@ -81,11 +81,11 @@ class EventShowDetailsModal extends Component {
             </Modal.Header>
             <Modal.Body className='pt-2 pb-0'>
               <Row>
-                <ImageryCards image_data_sources={image_data_sources} onClick={this.handleImagePreviewModal} lg={4} />
-                <AuxDataCards aux_data={aux_data} md={6} xl={4} />
-                <EventOptionsCard event={this.state.event} md={6} xl={4} />
+                <ImageryCards image_data_sources={image_data_sources} onClick={this.handleImagePreviewModal} md={6} lg={4} xl={3} />
+                <AuxDataCards aux_data={aux_data} md={6} lg={4} xl={3} />
+                <EventOptionsCard event={this.state.event} md={6} lg={4} xl={3} />
                 {event_free_text_card}
-                <EventCommentCard event={this.state.event} md={6} xl={4} />
+                <EventCommentCard event={this.state.event} md={6} lg={4} xl={3} />
               </Row>
             </Modal.Body>
           </Modal>

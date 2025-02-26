@@ -15,7 +15,7 @@ class EventCommentCard extends Component {
     })
 
     return event_comment && event_comment.event_option_value.length > 0 ? (
-      <Col className='event-data-col' sm={this.props.sm || 6} md={this.props.md || 4} lg={this.props.lg || 3}>
+      <Col className='event-data-col' sm={this.props.sm || 6} md={this.props.md || 4} lg={this.props.lg || 3} xl={this.props.xl || 3}>
         <Card className='event-data-card'>
           <Card.Header className='event-details'>Comment</Card.Header>
           <Card.Body>{event_comment.event_option_value}</Card.Body>
@@ -29,7 +29,8 @@ EventCommentCard.propTypes = {
   event: PropTypes.object.isRequired,
   sm: PropTypes.number,
   md: PropTypes.number,
-  lg: PropTypes.number
+  lg: PropTypes.number,
+  xl: PropTypes.number
 }
 
 export default EventCommentCard

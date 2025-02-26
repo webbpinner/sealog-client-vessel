@@ -30,7 +30,7 @@ const PAUSE = 1
 const FFWD = 2
 const FREV = 3
 
-const excludeAuxDataSources = Array.from(new Set([...EXCLUDE_AUX_DATA_SOURCES]))
+const excludeAuxDataSources = Array.from(new Set([...EXCLUDE_AUX_DATA_SOURCES, ...IMAGES_AUX_DATA_SOURCES]))
 
 class CruiseReplay extends Component {
   constructor(props) {

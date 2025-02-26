@@ -24,7 +24,7 @@ class EventOptionsCard extends Component {
     }, [])
 
     return return_event_options.length ? (
-      <Col className='event-data-col' sm={this.props.sm || 6} md={this.props.md || 4} lg={this.props.lg || 3}>
+      <Col className='event-data-col' sm={this.props.sm || 6} md={this.props.md || 4} lg={this.props.lg || 3} xl={this.props.xl || 3}>
         <Card className='event-data-card'>
           <Card.Header className='event-details'>Event Options</Card.Header>
           <Card.Body>{return_event_options}</Card.Body>
@@ -38,7 +38,8 @@ EventOptionsCard.propTypes = {
   event: PropTypes.object.isRequired,
   sm: PropTypes.number,
   md: PropTypes.number,
-  lg: PropTypes.number
+  lg: PropTypes.number,
+  xl: PropTypes.number
 }
 
 export default EventOptionsCard
