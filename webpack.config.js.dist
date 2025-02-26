@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
+  devtool: 'source-map',
   devServer: {
     port: 8080,
     static: './dist',
@@ -15,10 +16,16 @@ module.exports = {
     }
   },
   output: {
-    path: path.join(__dirname, '/dist'),
-    filename: 'js/index.bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'js/[name].[contenthash].js',
     publicPath: ROOT_PATH,
     clean: true
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all'
+    },
+    runtimeChunk: 'single'
   },
   module: {
     rules: [
@@ -36,7 +43,9 @@ module.exports = {
       {
         test: /\.s[ac]ss$/i,
         use: [
-          process.env.NODE_ENV !== 'production' ? 'style-loader' : MiniCssExtractPlugin.loader,
+          process.env.NODE_ENV !== 'production'
+          ? 'style-loader'
+          : MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
             options: {
@@ -80,7 +89,6 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       title: HEADER_TITLE,
-      favicon: './src/assets/images/favicon.ico',
       template: './src/assets/index.html'
     }),
     new MiniCssExtractPlugin({
@@ -88,7 +96,9 @@ module.exports = {
       chunkFilename: 'style/[id].css'
     }),
     new CopyPlugin({
-      patterns: [{ from: path.resolve(__dirname, 'src/assets/images/'), to: 'images' }]
+      patterns: [
+        { from: path.resolve(__dirname, 'src/assets/images/'), to: 'images' }
+      ]
     })
   ],
   resolve: {
